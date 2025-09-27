@@ -19,6 +19,6 @@ public class PerRequestInstance extends Instance {
 
     @Override
     public void releaseInstance(Object instance) {
-
+        acquisitionStrategy.deactivateInstance(instance);
     }
 }
