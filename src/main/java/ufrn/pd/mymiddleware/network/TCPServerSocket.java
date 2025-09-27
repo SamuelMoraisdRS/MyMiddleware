@@ -29,31 +29,16 @@ public class TCPServerSocket implements ServerSocketAdapter {
         try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader socketReader = new BufferedReader(new java.io.InputStreamReader(socket.getInputStream()))) {
             // TODO : Encapsulate on a codec class
-            StringBuffer buffer = new StringBuffer();
-
-            for (int i = 0 ; i < 5; i++) {
-                String linha = socketReader.readLine();
-                System.out.println("Linha: " + linha);
-                buffer.append(linha);
-                if (linha.equalsIgnoreCase(" ")) {
-                    buffer.append("\n");
-                }
-                buffer.append("\n");
-            }
-            buffer.append(socketReader.readLine());
-
-            System.out.println("passou da leitur: ");
-
-            String messageString = buffer.toString();
-            System.out.println("Recebido: " + messageString);
+            String messageString = Codec.decodeHttpMessage(socketReader);
+//            System.out.println("Recebido: " + messageString);
 //            RequestPayload request = protocol.parseRequest(messageString);
             Optional<String> response = Optional.ofNullable(service.handle(messageString));
             if (response.isEmpty()) {
                 return;
             }
             System.out.println("Resposta enviada" + response);
-            socketWriter.println(response);
-            System.out.println("Enviado: " + response);
+            socketWriter.println(response.get());
+            System.out.println("Enviado: " + response.get());
 
         } catch (IOException e) {
             System.err.println("TCP Server - Error acessing socket streams: " + e.getMessage());
