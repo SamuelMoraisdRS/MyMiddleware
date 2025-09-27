@@ -2,6 +2,10 @@ package ufrn.pd.mymiddleware.srh.protocols;
 
 import ufrn.pd.mymiddleware.srh.ApplicationProtocol;
 
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +36,12 @@ public class HTTPProtocol implements ApplicationProtocol {
     @Override
     public RequestData parseRequest(String request) {
         String[] splitMessage = request.split("\n\n");
+
+//        if (splitMessage.length < 1) {
+//            return new RequestPayload(null, null, null,
+//                    "ERROR", "Malformed HTTP message (no header)");
+//        }
+
         // Get the header info
         String header = splitMessage[0];
         String[] headerLines = header.split("\n");
@@ -47,15 +57,19 @@ public class HTTPProtocol implements ApplicationProtocol {
             objectId = "/" + cleanedResource.substring(1).split("/")[0];
             methodId = "/" + cleanedResource.substring(objectId.length() + 1).split("/")[0];
         } else {
-            String body = splitMessage[1];
+            objectId = "/" + resource.substring(1).split("/")[0];
+            methodId = "/" + resource.substring(objectId.length() + 1).split("/")[0];
+            if (splitMessage.length == 1) {
+                return new RequestData(method, objectId, methodId, payload);
+            }
+
+            String body = splitMessage.length > 1 ? splitMessage[1] : "";
+//            String body = splitMessage[1];
             String[] bodyLines = body.split("\n");
-            // The body is a series of parameters to the remote method call
             for (String line : bodyLines) {
                 String[] lineSplit = line.split(":");
                 payload.put(lineSplit[0], lineSplit[1]);
             }
-            objectId = "/" + resource.substring(1).split("/")[0];
-            methodId = "/" + resource.substring(objectId.length() + 1).split("/")[0];
         }
         return new RequestData(method, objectId, methodId, payload);
     }
@@ -64,18 +78,27 @@ public class HTTPProtocol implements ApplicationProtocol {
     public String createResponse(ResponseData message) {
         // TODO : STUB
         StringBuilder stringBuilder = new StringBuilder();
-        String statusCode = CODES.get(message.responseStatus());
+        String statusCode = CODES.get(message.responseStatus()).toUpperCase();
         stringBuilder.append("HTTP/1.1 " + statusCode + "\r\n");
-        stringBuilder.append("Server: STUB\r\n");
-        stringBuilder.append("Content-Type: text\r\n");
-        String date = String.format("Date: %s\r\n", new Date());
-        stringBuilder.append(date);
+        stringBuilder.append("Server: MyServer/1.0\r\n");
+        stringBuilder.append("Content-Type: text/plain; charset=UTF-8\r\n");
+        ZonedDateTime nowGmt = ZonedDateTime.now(ZoneId.of("GMT"));
+        String formattedDate = nowGmt.format(DateTimeFormatter.RFC_1123_DATE_TIME);
+        String date = String.format("Date: %s\r\n", formattedDate);
+
+
+        String payload = message.payload();
+        if (payload != null) {
+            payload = payload.replace("\"", "");
+            byte[] payloadBytes = payload.getBytes(StandardCharsets.UTF_8);
+            stringBuilder.append("Content-Length: " + payloadBytes.length + "\r\n");
+        }
 
         stringBuilder.append("\r\n");
 
-        stringBuilder.append(message.payload() + "\r\n");
+
+        stringBuilder.append(payload + "\r\n");
 
         return stringBuilder.toString();
-
     }
 }
