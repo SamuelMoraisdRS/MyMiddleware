@@ -45,9 +45,15 @@ public class MyMiddleware {
 
     private final Handler handler = new ServerRequestHandler(new ServerImpl(new TCPServerSocket(3001, 100)), invokerRegistry, new HTTPProtocol());
 
-    private final Server server = new ServerImpl(new TCPServerSocket(3001, 100));
+    private Server server;
 
-
+    public MyMiddleware(String protocol, int port) {
+        Server server = switch (protocol) {
+            case "http" -> new ServerImpl(new TCPServerSocket(port, 100));
+            default -> null;
+        };
+        this.server = server;
+    }
     private String getMethodId(Method method) {
         for (Class<? extends Annotation> annotationType : methodAnnotations ) {
             if (method.isAnnotationPresent(annotationType) || annotationType.isAnnotationPresent(MethodAnnotation.class)) {
