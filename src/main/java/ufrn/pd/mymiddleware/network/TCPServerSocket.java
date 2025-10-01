@@ -1,5 +1,8 @@
 package ufrn.pd.mymiddleware.network;
 
+import ufrn.pd.mymiddleware.network.protocols.ApplicationProtocol;
+import ufrn.pd.mymiddleware.network.protocols.RequestData;
+import ufrn.pd.mymiddleware.network.protocols.ResponseData;
 import ufrn.pd.mymiddleware.srh.Handler;
 
 import java.io.BufferedReader;
@@ -25,35 +28,32 @@ public class TCPServerSocket implements ServerSocketAdapter {
         this.connectionPoolSize = connectionPoolSize;
     }
 
-    protected void processRequest(Handler service, Socket socket) {
+    // TODO : Support keep-alive
+    protected void processRequest(Handler service, Socket socket, ApplicationProtocol protocol) {
         try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader socketReader = new BufferedReader(new java.io.InputStreamReader(socket.getInputStream()))) {
-            // TODO : Encapsulate on a codec class
             String messageString = Codec.decodeHttpMessage(socketReader);
-//            System.out.println("Recebido: " + messageString);
-//            RequestPayload request = protocol.parseRequest(messageString);
-            Optional<String> response = Optional.ofNullable(service.handle(messageString));
+            RequestData requestData = protocol.parseRequest(messageString);
+            Optional<ResponseData> response = Optional.ofNullable(service.handle(requestData));
             if (response.isEmpty()) {
                 return;
             }
-            System.out.println("Resposta enviada" + response);
-            socketWriter.println(response.get());
+            String responseRaw = protocol.createResponse(response.get());
+            socketWriter.println(responseRaw);
             System.out.println("Enviado: " + response.get());
-
         } catch (IOException e) {
             System.err.println("TCP Server - Error acessing socket streams: " + e.getMessage());
         }
     }
 
     @Override
-    public void handleConnection(Handler service) {
+    public void handleConnection(Handler service, ApplicationProtocol protocol) {
         try {
             Socket socket = serverSocket.accept();
-            this.executorService.execute(() -> processRequest(service, socket));
+            this.executorService.execute(() -> processRequest(service, socket, protocol));
         } catch (IOException e) {
             System.err.println(" TCP Server - Error stablishing client connection: " + e.getMessage());
         }
-
     }
 
     @Override

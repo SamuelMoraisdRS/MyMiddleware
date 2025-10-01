@@ -7,6 +7,9 @@ import ufrn.pd.mymiddleware.annotation.method.MethodAnnotation;
 import ufrn.pd.mymiddleware.annotation.method.endpoint.Post;
 import ufrn.pd.mymiddleware.annotation.type.LifeCycle;
 import ufrn.pd.mymiddleware.annotation.type.RequestMapping;
+import ufrn.pd.mymiddleware.interceptor.Interceptor;
+import ufrn.pd.mymiddleware.interceptor.InterceptorManager;
+import ufrn.pd.mymiddleware.interceptor.LoggingInterceptor;
 import ufrn.pd.mymiddleware.invoker.Invoker;
 import ufrn.pd.mymiddleware.invoker.InvokerImpl;
 import ufrn.pd.mymiddleware.invoker.InvokerRegistry;
@@ -14,12 +17,13 @@ import ufrn.pd.mymiddleware.lifecyclemanager.Acquisition;
 import ufrn.pd.mymiddleware.lifecyclemanager.LifecycleManager;
 import ufrn.pd.mymiddleware.lifecyclemanager.LifecycleManagerImpl;
 import ufrn.pd.mymiddleware.lifecyclemanager.Scope;
+import ufrn.pd.mymiddleware.network.GRPCServerImpl;
 import ufrn.pd.mymiddleware.network.Server;
 import ufrn.pd.mymiddleware.network.ServerImpl;
 import ufrn.pd.mymiddleware.network.TCPServerSocket;
 import ufrn.pd.mymiddleware.srh.Handler;
 import ufrn.pd.mymiddleware.srh.ServerRequestHandler;
-import ufrn.pd.mymiddleware.srh.protocols.HTTPProtocol;
+import ufrn.pd.mymiddleware.network.protocols.HTTPProtocol;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -43,16 +47,18 @@ public class MyMiddleware {
 
     private final InvokerRegistry invokerRegistry = new InvokerRegistry();
 
-    private final Handler handler = new ServerRequestHandler(new ServerImpl(new TCPServerSocket(3001, 100)), invokerRegistry, new HTTPProtocol());
+    private Handler handler;
 
     private Server server;
 
     public MyMiddleware(String protocol, int port) {
-        Server server = switch (protocol) {
+        this.server = switch (protocol) {
             case "http" -> new ServerImpl(new TCPServerSocket(port, 100));
+            case "grpc" -> new GRPCServerImpl(port);
             default -> null;
         };
-        this.server = server;
+        System.out.println("Protocolo :" + protocol);
+        this.handler = new ServerRequestHandler(server, invokerRegistry);
     }
     private String getMethodId(Method method) {
         for (Class<? extends Annotation> annotationType : methodAnnotations ) {
@@ -120,7 +126,10 @@ public class MyMiddleware {
             RemoteMethod remoteMethod = new RemoteMethod(methodAnnotationId, method.getName(), pathParams, method);
             remoteMethods.put(methodAnnotationId, remoteMethod);
         }
-        Invoker invoker = new InvokerImpl(objectId, remoteMethods, new Marshaller(), this.lifecycleManager);
+        Interceptor loggingInterceptor = new LoggingInterceptor();
+        InterceptorManager interceptorManager = new InterceptorManager(List.of(loggingInterceptor), List.of());
+        Invoker invoker = new InvokerImpl(objectId, remoteMethods, new Marshaller(), this.lifecycleManager,
+                interceptorManager);
         invokerRegistry.addInvoker(objectId, invoker);
     }
 

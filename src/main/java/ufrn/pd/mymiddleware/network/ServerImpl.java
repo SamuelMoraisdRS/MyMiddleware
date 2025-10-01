@@ -1,5 +1,6 @@
 package ufrn.pd.mymiddleware.network;
 
+import ufrn.pd.mymiddleware.network.protocols.ApplicationProtocol;
 import ufrn.pd.mymiddleware.srh.Handler;
 
 
@@ -23,11 +24,11 @@ public class ServerImpl implements Server {
     }
 
     @Override
-    public void runServer(Handler service) {
+    public void runServer(Handler service, ApplicationProtocol protocol) {
         try (socket) {
             socket.open();
             while (true) {
-                socket.handleConnection(service);
+                socket.handleConnection(service, protocol);
             }
         } catch (Exception e) {
             e.printStackTrace();

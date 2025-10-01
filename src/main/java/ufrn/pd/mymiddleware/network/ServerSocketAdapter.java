@@ -1,4 +1,5 @@
 package ufrn.pd.mymiddleware.network;
+import ufrn.pd.mymiddleware.network.protocols.ApplicationProtocol;
 import ufrn.pd.mymiddleware.srh.Handler;
 
 /**
@@ -7,7 +8,7 @@ import ufrn.pd.mymiddleware.srh.Handler;
 public interface ServerSocketAdapter extends AutoCloseable {
 
      // Dont knwo if it will receive the message as string
-     void handleConnection(Handler service);
+     void handleConnection(Handler service, ApplicationProtocol protocol);
 
      void open();
 
