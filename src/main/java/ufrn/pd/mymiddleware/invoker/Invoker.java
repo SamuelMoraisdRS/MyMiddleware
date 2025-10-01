@@ -1,7 +1,7 @@
 package ufrn.pd.mymiddleware.invoker;
 
-import ufrn.pd.mymiddleware.srh.protocols.RequestData;
-import ufrn.pd.mymiddleware.srh.protocols.ResponseData;
+import ufrn.pd.mymiddleware.network.protocols.RequestData;
+import ufrn.pd.mymiddleware.network.protocols.ResponseData;
 
 import java.util.ArrayList;
 import java.util.List;

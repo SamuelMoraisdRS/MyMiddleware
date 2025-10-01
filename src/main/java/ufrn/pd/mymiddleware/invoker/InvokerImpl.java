@@ -1,11 +1,12 @@
 package ufrn.pd.mymiddleware.invoker;
 
 import ufrn.pd.mymiddleware.Marshaller;
+import ufrn.pd.mymiddleware.interceptor.InterceptorManager;
 import ufrn.pd.mymiddleware.lifecyclemanager.LifecycleManager;
 import ufrn.pd.mymiddleware.main.RemoteMethod;
-import ufrn.pd.mymiddleware.srh.protocols.RequestData;
-import ufrn.pd.mymiddleware.srh.protocols.ResponseData;
-import ufrn.pd.mymiddleware.srh.protocols.ResponseStatus;
+import ufrn.pd.mymiddleware.network.protocols.RequestData;
+import ufrn.pd.mymiddleware.network.protocols.ResponseData;
+import ufrn.pd.mymiddleware.network.protocols.ResponseStatus;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,17 +14,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class InvokerImpl extends Invoker{
+public class InvokerImpl extends Invoker {
     private final String id;
     private final Marshaller marshaller;
     Map<String, RemoteMethod> remoteMethods;
     private final LifecycleManager lifecycleManager;
+    private final InterceptorManager interceptorManager;
 
-    public InvokerImpl(String id, Map<String, RemoteMethod> remoteMethods, Marshaller marshaller, LifecycleManager lifecycleManager) {
+    public InvokerImpl(String id, Map<String, RemoteMethod> remoteMethods, Marshaller marshaller,
+                       LifecycleManager lifecycleManager, InterceptorManager interceptorManager) {
         this.id = id;
         this.marshaller = marshaller;
         this.remoteMethods = remoteMethods;
         this.lifecycleManager = lifecycleManager;
+        this.interceptorManager = interceptorManager;
     }
 
 
@@ -36,7 +40,7 @@ public class InvokerImpl extends Invoker{
         // Expected parameter type for each named parameter
         Map<String, Class<?>> expectedParams = remoteMethod.getParameterTypes();
         List<Object> unmarshaledParams = new ArrayList<>();
-        for (Map.Entry<String, Class<?>> expectedParam : expectedParams.entrySet())  {
+        for (Map.Entry<String, Class<?>> expectedParam : expectedParams.entrySet()) {
             String paramName = expectedParam.getKey();
             Class<?> paramType = expectedParam.getValue();
             String paramValue = requestData.payload().get(paramName);
@@ -47,9 +51,15 @@ public class InvokerImpl extends Invoker{
 
         Object remoteObject = lifecycleManager.getInstance(requestData.remoteObjectRoute());
         Method methodObject = remoteMethod.getMethodObject();
+        System.out.println("Metodo pego da instancia : " + methodObject.getName());
+        // TODO : Implementar o remoting error e definir como ele vai se comportar em relacao ao InvocationContext
+        InvocationContext invocationContext = new InvocationContext(requestData, remoteObject, methodId,
+                requestData.remoteObjectRoute(), remoteObject);
+        interceptorManager.beforeInvocation(invocationContext);
         try {
             Object methodReturn = methodObject.invoke(remoteObject, params);
             lifecycleManager.releaseInstance(requestData.remoteObjectRoute(), remoteObject);
+            interceptorManager.afterInvocation(invocationContext);
             return new ResponseData(ResponseStatus.SUCCESS, marshaller.marshal(methodReturn));
 //            return marshaller.marshal(methodReturn);
         } catch (IllegalAccessException e) {
@@ -57,16 +67,5 @@ public class InvokerImpl extends Invoker{
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e);
         }
-
-
-        // Get the business method to be executed
-        // Unmarshall the request data into the appropriate data types for the parameters
-        // With the parameters at hand, fetch the remote object -> call the lifecycle manager
-        // Perform the beforeInvocation actions
-        // Invoke the method
-        // Perform the afterInvocation actions
-        // Marshall the response data the response payload format
-
-
     }
 }
