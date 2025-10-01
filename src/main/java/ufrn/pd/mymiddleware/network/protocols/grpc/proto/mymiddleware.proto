@@ -1,0 +1,33 @@
+syntax = "proto3";
+package mymiddleware;
+//option java_package = "";
+option java_multiple_files = true;
+
+//message NodeAddressGRPC {
+//  string ip = 1;
+//  int32 port = 2;
+//}
+
+enum ResponseStatusGRPC {
+  SUCCESS = 0;
+  REMOTE_METHOD_NOT_FOUND = 1;
+  REMOTE_EXECUTION_ERROR = 2;
+  UNMARSHALLING_ERROR = 3;
+}
+
+message RequestDataGRPC {
+  string method = 1;
+  string remoteObjectRoute = 2;
+  string remoteMethodRoute = 3;
+  string sender = 4;
+  map<string, string> payload = 5;
+}
+
+message ResponseDataGRPC {
+  ResponseStatusGRPC responseStatus = 1;
+  string payload = 2;
+}
+
+service GeneralService {
+  rpc SendRequest(RequestDataGRPC) returns (ResponseDataGRPC);
+}
