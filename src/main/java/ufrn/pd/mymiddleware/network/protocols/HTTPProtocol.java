@@ -1,12 +1,9 @@
-package ufrn.pd.mymiddleware.srh.protocols;
-
-import ufrn.pd.mymiddleware.srh.ApplicationProtocol;
+package ufrn.pd.mymiddleware.network.protocols;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +47,12 @@ public class HTTPProtocol implements ApplicationProtocol {
         Map<String, String> payload = new HashMap<>();
         String objectId = "";
         String methodId = "";
+        String sender = "";
+        for (String headerLine : headerLines) {
+            if (headerLine.startsWith("User-Agent:")) {
+                sender = headerLine.split(":")[1];
+            }
+        }
         if (resource.contains("?")) {
             // todo : Capture erro em que o metodo e incompativel com query parameters
             String cleanedResource = resource.split("\\?")[0];
@@ -60,7 +63,7 @@ public class HTTPProtocol implements ApplicationProtocol {
             objectId = "/" + resource.substring(1).split("/")[0];
             methodId = "/" + resource.substring(objectId.length() + 1).split("/")[0];
             if (splitMessage.length == 1) {
-                return new RequestData(method, objectId, methodId, payload);
+                return new RequestData(method, objectId, methodId, sender, payload);
             }
 
             String body = splitMessage.length > 1 ? splitMessage[1] : "";
@@ -71,7 +74,7 @@ public class HTTPProtocol implements ApplicationProtocol {
                 payload.put(lineSplit[0], lineSplit[1]);
             }
         }
-        return new RequestData(method, objectId, methodId, payload);
+        return new RequestData(method, objectId, methodId, sender, payload);
     }
 
     @Override

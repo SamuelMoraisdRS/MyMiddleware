@@ -1,4 +1,4 @@
-package ufrn.pd.mymiddleware.srh.protocols;
+package ufrn.pd.mymiddleware.network.protocols;
 
 public enum ResponseStatus {
     SUCCESS,

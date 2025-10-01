@@ -1,7 +1,4 @@
-package ufrn.pd.mymiddleware.srh;
-
-import ufrn.pd.mymiddleware.srh.protocols.RequestData;
-import ufrn.pd.mymiddleware.srh.protocols.ResponseData;
+package ufrn.pd.mymiddleware.network.protocols;
 
 public interface ApplicationProtocol {
     public RequestData parseRequest(String request);
