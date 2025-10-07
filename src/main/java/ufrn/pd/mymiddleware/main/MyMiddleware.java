@@ -53,7 +53,7 @@ public class MyMiddleware {
 
     public MyMiddleware(String protocol, int port) {
         this.server = switch (protocol) {
-            case "http" -> new ServerImpl(new TCPServerSocket(port, 100));
+            case "http" -> new ServerImpl(new TCPServerSocket(port, 100), new HTTPProtocol());
             case "grpc" -> new GRPCServerImpl(port);
             default -> null;
         };
@@ -62,7 +62,8 @@ public class MyMiddleware {
     }
     private String getMethodId(Method method) {
         for (Class<? extends Annotation> annotationType : methodAnnotations ) {
-            if (method.isAnnotationPresent(annotationType) || annotationType.isAnnotationPresent(MethodAnnotation.class)) {
+//            if (method.isAnnotationPresent(annotationType) || annotationType.isAnnotationPresent(MethodAnnotation.class)) {
+            if (method.isAnnotationPresent(annotationType)) {
                 MethodAnnotation methodAnnotation = annotationType.getAnnotation(MethodAnnotation.class);
                 String annotationId = methodAnnotation.id();
                 // TODO Validate if it really is a method annotation
@@ -76,7 +77,8 @@ public class MyMiddleware {
                 }
             }
         }
-        throw new IllegalArgumentException("Method " + method.getName() + " is not annotated with a valid annotation");
+//        throw new IllegalArgumentException("Method " + method.getName() + " is not annotated with a valid annotation");
+        return null;
     }
 
     public MyMiddleware() {
@@ -113,6 +115,10 @@ public class MyMiddleware {
         Map<String, RemoteMethod> remoteMethods = new HashMap<>();
         for (Method method : objectClass.getDeclaredMethods()) {
             method.setAccessible(true);
+            String methodAnnotationId = getMethodId(method);
+            if (methodAnnotationId == null) {
+                continue;
+            }
             Map<String, Class<?>> pathParams = new HashMap<>();
             Parameter[] parameters = method.getParameters();
             for (Parameter parameter : parameters) {
@@ -122,7 +128,7 @@ public class MyMiddleware {
                 }
             }
             System.out.println("Universal ID for this method: " + getMethodId(method));
-            String methodAnnotationId = getMethodId(method);
+//            String methodAnnotationId = getMethodId(method);
             RemoteMethod remoteMethod = new RemoteMethod(methodAnnotationId, method.getName(), pathParams, method);
             remoteMethods.put(methodAnnotationId, remoteMethod);
         }
