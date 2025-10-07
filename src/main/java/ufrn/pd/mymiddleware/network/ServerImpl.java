@@ -17,14 +17,16 @@ public class ServerImpl implements Server {
      */
 
     private Handler service;
+    private ApplicationProtocol protocol;
 //    private ApplicationProtocol protocol;
 
-    public ServerImpl(ServerSocketAdapter socket) {
+    public ServerImpl(ServerSocketAdapter socket, ApplicationProtocol protocol) {
         this.socket = socket;
+        this.protocol = protocol;
     }
 
     @Override
-    public void runServer(Handler service, ApplicationProtocol protocol) {
+    public void runServer(Handler service) {
         try (socket) {
             socket.open();
             while (true) {

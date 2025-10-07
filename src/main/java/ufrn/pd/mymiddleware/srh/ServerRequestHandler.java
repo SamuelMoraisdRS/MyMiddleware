@@ -34,7 +34,7 @@ public class ServerRequestHandler implements Handler {
     }
 
     public void run() {
-        server.runServer(this,protocol);
+        server.runServer(this);
     }
 
 //    @Override
