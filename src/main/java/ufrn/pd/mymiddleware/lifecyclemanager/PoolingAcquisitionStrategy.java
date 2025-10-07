@@ -6,11 +6,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PoolingAcquisitionStrategy implements InstanceAcquisitionStrategy{
-    private int poolSize = 100;
+    private int poolSize = 300;
 
     private Queue<Object> pool;
 
-    private final LinkedHashSet<Object> takenInstances = new LinkedHashSet<>();
+    private final ConcurrentLinkedQueue<Object> takenInstances = new ConcurrentLinkedQueue<>();
 
     public PoolingAcquisitionStrategy() {
 
@@ -36,7 +36,7 @@ public class PoolingAcquisitionStrategy implements InstanceAcquisitionStrategy{
         System.out.println("Tamanho do pool : " + pool.size());
         System.out.println("Tamanho do taken : " + takenInstances.size());
         if (pool.isEmpty()) {
-            Object repurposedInstance = takenInstances.removeLast();
+            Object repurposedInstance = takenInstances.poll();
             pool.add(repurposedInstance);
 
         }
