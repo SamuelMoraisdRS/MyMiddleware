@@ -14,7 +14,6 @@ public class LifecycleManagerImpl implements LifecycleManager {
 
     @Override
     public Object getInstance(String className) {
-        // TODO : Esta ferindo os identification patterns, precismaos de um identificador global unicp
         return lookupTable.get(className).getInstance();
     }
 
@@ -29,7 +28,7 @@ public class LifecycleManagerImpl implements LifecycleManager {
                                     Acquisition acquisition, Scope scope) {
         InstanceAcquisitionStrategy acquisitionStrategy = switch (acquisition) {
             case LAZY -> new LazyAcquisitionStrategy();
-            default -> new PoolingAcquisitionStrategy();
+            default -> new PoolingAcquisitionStrategy(instanceConstructor);
         };
         Instance instance = switch (scope) {
             case STATIC -> new StaticInstance(instanceConstructor);
