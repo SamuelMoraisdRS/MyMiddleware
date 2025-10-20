@@ -12,13 +12,8 @@ public class ServerImpl implements Server {
     // Adapter object to represent the socket interface used in this project
     private final ServerSocketAdapter socket;
 
-    /*
-    This object will interpret the message according to the app protocol used here
-     */
-
     private Handler service;
     private ApplicationProtocol protocol;
-//    private ApplicationProtocol protocol;
 
     public ServerImpl(ServerSocketAdapter socket, ApplicationProtocol protocol) {
         this.socket = socket;

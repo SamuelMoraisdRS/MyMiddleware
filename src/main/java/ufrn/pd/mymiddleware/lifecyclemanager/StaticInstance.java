@@ -24,6 +24,6 @@ public class StaticInstance extends Instance {
 
     @Override
     public void releaseInstance(Object instance) {
-        // Do nothing, apparently
+        // Do nothing
     }
 }

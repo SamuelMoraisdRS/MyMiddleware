@@ -8,16 +8,13 @@ public class Codec {
         StringBuilder headerBuilder = new StringBuilder();
         String line;
         int contentLength = 0;
-        // Lê os headers até a linha vazia
         while ((line = socketReader.readLine()) != null && !line.isEmpty()) {
             headerBuilder.append(line).append("\n");
             if (line.toLowerCase().startsWith("content-length:")) {
                 contentLength = Integer.parseInt(line.split(":", 2)[1].trim());
             }
         }
-        // Linha vazia que separa header e body
         headerBuilder.append("\n");
-        // Lê o corpo se existir
         char[] bodyChars = new char[contentLength];
         int totalRead = 0;
         while (totalRead < contentLength) {

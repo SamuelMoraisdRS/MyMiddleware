@@ -37,17 +37,7 @@ public class ServerRequestHandler implements Handler {
         server.runServer(this);
     }
 
-//    @Override
-//    public String handle(String request) {
-//        // Returns a representation containing: method and resource, the payload, the InvocationContext
-//        RequestData requestData = protocol.parseRequest(request);
-////        System.out.println("SRH: rota do metodo recebido" + requestData.remoteMethodRoute());
-//        Invoker chosenInvoker = invokerRegistry.getInvoker(requestData.remoteObjectRoute());
-//        ResponseData methodResponse = chosenInvoker.invoke(requestData);
-//        return protocol.createResponse(methodResponse);
-//    }
-
-    // TODO : Gambiarra: Decomponha o metodo para tirar a chamada a camada de protocolo
+    // TODO :  Decomponha o metodo para tirar a chamada a camada de protocolo
     @Override
     public ResponseData handle(RequestData request) {
         // Returns a representation containing: method and resource, the payload, the InvocationContext

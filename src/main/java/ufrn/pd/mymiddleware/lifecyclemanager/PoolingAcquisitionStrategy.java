@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PoolingAcquisitionStrategy implements InstanceAcquisitionStrategy{
+
     private int poolSize = 600;
 
     private Queue<Object> pool;
@@ -15,7 +16,6 @@ public class PoolingAcquisitionStrategy implements InstanceAcquisitionStrategy{
     public PoolingAcquisitionStrategy(Constructor<?> constructor) {
         for (int i = 0; i < poolSize; i++) {
             this.pool = new ConcurrentLinkedQueue<>();
-            // Todo : Understand how to instantiate these objects
             try {
                 boolean add = pool.add(constructor.newInstance());
             } catch (InvocationTargetException e) {
@@ -31,26 +31,8 @@ public class PoolingAcquisitionStrategy implements InstanceAcquisitionStrategy{
 
     @Override
     public Object activateInstance(Constructor<?> constructor) {
-//        if (pool == null) {
-//            for (int i = 0; i < poolSize; i++) {
-//                this.pool = new ConcurrentLinkedQueue<>();
-//                // Todo : Understand how to instantiate these objects
-//                try {
-//                    boolean add = pool.add(constructor.newInstance());
-//                } catch (InvocationTargetException e) {
-//                    throw new RuntimeException(e);
-//                } catch (InstantiationException e) {
-//                    throw new RuntimeException(e);
-//                } catch (IllegalAccessException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-//        }
-        System.out.println("Tamanho do pool : " + pool.size());
-        System.out.println("Tamanho do taken : " + takenInstances.size());
         if (pool.isEmpty()) {
             Object repurposedInstance = takenInstances.peek();
-//            return repurposedInstance;
             pool.add(repurposedInstance);
         }
         Object takenObject = pool.poll();

@@ -30,38 +30,42 @@ public class InvokerImpl extends Invoker {
         this.interceptorManager = interceptorManager;
     }
 
-
-    // Receives a request, passes it along to the business class and returns
-    // returns the serialized response
     public ResponseData invoke(RequestData requestData) {
 
         String methodId = String.format("%s:%s", requestData.method(), requestData.remoteMethodRoute());
+
         RemoteMethod remoteMethod = remoteMethods.get(methodId);
-        // Expected parameter type for each named parameter
         Map<String, Class<?>> expectedParams = remoteMethod.getParameterTypes();
         List<Object> unmarshaledParams = new ArrayList<>();
+
         for (Map.Entry<String, Class<?>> expectedParam : expectedParams.entrySet()) {
             String paramName = expectedParam.getKey();
             Class<?> paramType = expectedParam.getValue();
             String paramValue = requestData.payload().get(paramName);
-            // TODO : handle the marshalling exception
-            unmarshaledParams.add(marshaller.unmarshal(paramValue, paramType));
+            try {
+                unmarshaledParams.add(marshaller.unmarshal(paramValue, paramType));
+            } catch (IllegalArgumentException e) {
+                return new ResponseData(ResponseStatus.UNMARSHALLING_ERROR, String.format("Failed to convert paramater: %s to data type %s",
+                        paramName, paramType.getName()));
+            }
         }
+
         Object[] params = unmarshaledParams.toArray();
 
         Object remoteObject = lifecycleManager.getInstance(requestData.remoteObjectRoute());
         Method methodObject = remoteMethod.getMethodObject();
-        System.out.println("Metodo pego da instancia : " + methodObject.getName());
-        // TODO : Implementar o remoting error e definir como ele vai se comportar em relacao ao InvocationContext
+//        System.out.println("Metodo pego da instancia : " + methodObject.getName());
+
         InvocationContext invocationContext = new InvocationContext(requestData, remoteObject, methodId,
                 requestData.remoteObjectRoute(), remoteObject);
+
         interceptorManager.beforeInvocation(invocationContext);
+
         try {
             Object methodReturn = methodObject.invoke(remoteObject, params);
             lifecycleManager.releaseInstance(requestData.remoteObjectRoute(), remoteObject);
             interceptorManager.afterInvocation(invocationContext);
             return new ResponseData(ResponseStatus.SUCCESS, marshaller.marshal(methodReturn));
-//            return marshaller.marshal(methodReturn);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {

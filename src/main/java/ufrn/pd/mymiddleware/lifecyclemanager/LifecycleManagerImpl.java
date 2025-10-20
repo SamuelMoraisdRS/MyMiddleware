@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LifecycleManagerImpl implements LifecycleManager {
 
-    // TODO : Create an object identifier class or alias to use here
     private final Map<String, Instance> lookupTable = new ConcurrentHashMap<String, Instance>();
 
     public LifecycleManagerImpl() {
@@ -17,7 +16,6 @@ public class LifecycleManagerImpl implements LifecycleManager {
         return lookupTable.get(className).getInstance();
     }
 
-    // TODO  : Evaluate if this is necessary
     @Override
     public void releaseInstance(String objectId, Object instance) {
         lookupTable.get(objectId).releaseInstance(instance);

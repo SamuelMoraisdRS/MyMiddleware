@@ -19,6 +19,7 @@ public class HTTPProtocol implements ApplicationProtocol {
     static enum HTTPMethod {
         GET, POST, PUT, DELETE;
     }
+
     private Map<String, String> parseQueryParams(String resource) {
         Map<String, String> queryParams = new HashMap<>();
         String[] params = resource.split("\\?")[1].split("&");
@@ -33,11 +34,6 @@ public class HTTPProtocol implements ApplicationProtocol {
     @Override
     public RequestData parseRequest(String request) {
         String[] splitMessage = request.split("\n\n");
-
-//        if (splitMessage.length < 1) {
-//            return new RequestPayload(null, null, null,
-//                    "ERROR", "Malformed HTTP message (no header)");
-//        }
 
         // Get the header info
         String header = splitMessage[0];

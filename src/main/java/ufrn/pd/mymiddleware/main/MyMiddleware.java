@@ -34,15 +34,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-// TODO : Vamos tentar duas abordagen. Primeiro, vamos fazer o invoker ter um map contendo os ids do metodo e sua assinatura
-// alem de
 public class MyMiddleware {
-    // TODO : Encapsulate annotation handling
+
+    // TODO : Encapsular annotation handling em classe
     private final List<Class<? extends Annotation>> classAnnotations = List.of(RequestMapping.class);
     private final List<Class<? extends Annotation>> methodAnnotations = List.of(Get.class, Post.class);
     private final List<Class<? extends Annotation>> paramAnnotations = List.of(PathParam.class);
 
-    // TODO : This class should have its depedencies defined on a configuration file
+    // TODO : Usar arquivo conf
     private final LifecycleManager lifecycleManager = new LifecycleManagerImpl();
 
     private final InvokerRegistry invokerRegistry = new InvokerRegistry();
@@ -62,11 +61,10 @@ public class MyMiddleware {
     }
     private String getMethodId(Method method) {
         for (Class<? extends Annotation> annotationType : methodAnnotations ) {
-//            if (method.isAnnotationPresent(annotationType) || annotationType.isAnnotationPresent(MethodAnnotation.class)) {
             if (method.isAnnotationPresent(annotationType)) {
                 MethodAnnotation methodAnnotation = annotationType.getAnnotation(MethodAnnotation.class);
                 String annotationId = methodAnnotation.id();
-                // TODO Validate if it really is a method annotation
+                // TODO : Validar a anotacao de metodo
                 try {
                     Method routeMethod = annotationType.getMethod("route");
                     String methodRoute = (String) routeMethod.invoke(method.getAnnotation(annotationType));
@@ -77,7 +75,6 @@ public class MyMiddleware {
                 }
             }
         }
-//        throw new IllegalArgumentException("Method " + method.getName() + " is not annotated with a valid annotation");
         return null;
     }
 
@@ -88,9 +85,6 @@ public class MyMiddleware {
         Class<?> objectClass = object.getClass();
         System.out.println("Adding methods for " + objectClass.getName());
 
-        // Register the empty constructor and the object instance
-
-        // TODO :  Register the Empty constructor
         Constructor<?> emptyConstructor = null;
         try {
             emptyConstructor = objectClass.getConstructor();
@@ -98,6 +92,7 @@ public class MyMiddleware {
             throw new RuntimeException(e);
         }
         emptyConstructor.setAccessible(true);
+
         Optional<LifeCycle> lifeCycleAnnotation = Optional.ofNullable(objectClass.getAnnotation(LifeCycle.class));
 
         String objectId = objectClass.getAnnotation(RequestMapping.class).route();
@@ -110,7 +105,6 @@ public class MyMiddleware {
             lifecycleManager.registerNewInstance(objectId, emptyConstructor, Acquisition.LAZY, Scope.STATIC);
         }
 
-        // Build the unique identifier for this invoker
         System.out.println("Universal ID for this class: " + objectId);
         Map<String, RemoteMethod> remoteMethods = new HashMap<>();
         for (Method method : objectClass.getDeclaredMethods()) {
@@ -128,7 +122,6 @@ public class MyMiddleware {
                 }
             }
             System.out.println("Universal ID for this method: " + getMethodId(method));
-//            String methodAnnotationId = getMethodId(method);
             RemoteMethod remoteMethod = new RemoteMethod(methodAnnotationId, method.getName(), pathParams, method);
             remoteMethods.put(methodAnnotationId, remoteMethod);
         }

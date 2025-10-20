@@ -17,17 +17,17 @@ public  class InterceptorManager {
     private Map<InterceptorType, List<Interceptor>> interceptors;
 
     public InterceptorManager(List<Interceptor> beforeInterceptors, List<Interceptor> afterInterceptors) {
+
         this.interceptors = new HashMap<>();
         this.interceptors.put(InterceptorType.BEFORE_INVOCATION, beforeInterceptors);
         this.interceptors.put(InterceptorType.AFTER_INVOCATION, afterInterceptors);
+
     }
 
     public InvocationContext beforeInvocation(InvocationContext context) {
         for (Interceptor interceptor : interceptors.get(InterceptorType.BEFORE_INVOCATION)) {
-            // Os interceptors vao mudar o invocationcontext a cada um invocado da pipeline
             interceptor.intercept(context);
         }
-        // Retorna o context transformado
         return context;
     }
 

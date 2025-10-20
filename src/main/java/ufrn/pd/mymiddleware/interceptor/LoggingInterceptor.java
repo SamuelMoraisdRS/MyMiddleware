@@ -15,25 +15,14 @@ public class LoggingInterceptor implements Interceptor{
     public LoggingInterceptor() {
 
         logger.addHandler(new ConsoleHandler());
-//        try {
-////            FileHandler fh = new FileHandler("log.txt", true);
-////            fh.setFormatter(new SimpleFormatter());
-//            logger.addHandler(new ConsoleHandler());
-////            logger.setUseParentHandlers(false); // evita duplicar no console
-//        } catch (IOException e) {
-//            throw new RuntimeException("Erro ao configurar FileHandler para logging", e);
-//        }
     }
 
     @Override
     public void intercept(InvocationContext context) {
-//        context.getInvocationInfo().put("log_id", UUID.randomUUID().toString());
-//        logger.info("LoggingInterceptor: ID - " + context.getInvocationInfo().get("log_id"));
-//        logger.info("Performing remote call");
-//        logger.info("Remote Object route " + context.getRemoteMethodId());
-//        logger.info("Remote Object ID: " + context.getRemoteObjectId());
-//        logger.info("expected params" + context.getExpectedParams());
-//
-//
+        context.getInvocationInfo().put("log_id", UUID.randomUUID().toString());
+        logger.info("LoggingInterceptor: ID - " + context.getInvocationInfo().get("log_id"));
+//        loggeinfofo("Performing remote call");
+        logger.info("Remote Object route " + context.getRemoteMethodId());
+        logger.info("Remote Object ID: " + context.getRemoteObjectId());
     }
 }
