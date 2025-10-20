@@ -5,7 +5,6 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import mymiddleware.*;
 import mymiddleware.ResponseDataGRPC;
-import ufrn.pd.mymiddleware.network.protocols.ApplicationProtocol;
 import ufrn.pd.mymiddleware.network.protocols.RequestData;
 import ufrn.pd.mymiddleware.network.protocols.ResponseData;
 import ufrn.pd.mymiddleware.srh.Handler;
@@ -22,7 +21,7 @@ public class GRPCServerImpl implements Server {
     }
 
     @Override
-    public void runServer(Handler service, ApplicationProtocol protocol) {
+    public void runServer(Handler service) {
         int numAttempts = 5;
         for (int i = 1; i <= numAttempts; i++) {
             try {
@@ -54,12 +53,11 @@ public class GRPCServerImpl implements Server {
             Optional<ResponseData> responseData = Optional.ofNullable(service.handle(requestData));
             if (responseData.isEmpty()) {
                 System.err.println("Chegou um erro no grpc");
-                responseObserver.onError(
-                        Status.UNAVAILABLE // TODO : Use a proper code
-                                .withDescription("An error has occurred")
-                                .asRuntimeException()
-                );
-                return; // stop execution
+                var response = ResponseDataGRPC.newBuilder().setResponseStatus(ResponseStatusGRPC.REMOTE_EXECUTION_ERROR)
+                        .setPayload("Error performing search").build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
             }
 
             ResponseStatusGRPC responseStatus = ResponseStatusGRPC.valueOf(responseData.get().responseStatus().
